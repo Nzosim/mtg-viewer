@@ -42,5 +42,3 @@ Dans le fichier CSV, il y a des informations sur l'artiste qui a illustré la ca
 Ajouter l'artiste dans la base de données au moment de l'import.  
 Ajouter les informations de l'artiste dans la page de détail de la carte.  
 Ajouter un filtre sur l'artiste dans la recherche de carte / listing  des cartes.
-
-

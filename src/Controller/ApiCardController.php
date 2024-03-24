@@ -10,6 +10,8 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use OpenApi\Attributes as OA;
 use Symfony\Component\Routing\Annotation\Route;
+use Doctrine\ORM\Tools\Pagination\Paginator;
+use Symfony\Component\HttpFoundation\Request;
 
 #[Route('/api/card', name: 'api_card_')]
 #[OA\Tag(name: 'Card', description: 'Routes for all about cards')]
@@ -22,14 +24,25 @@ class ApiCardController extends AbstractController
     ) {}
 
     #[Route('/all', name: 'List all cards', methods: ['GET'])]
-    #[OA\Put(description: 'Return all cards in the database')]
+    #[OA\Parameter(name: 'page', description: 'Page number', in: 'path', required: false, schema: new OA\Schema(type: 'integer'))]
+    #[OA\Get(description: 'List all cards')]
     #[OA\Response(response: 200, description: 'List all cards')]
-    public function cardAll(): Response
+    public function cardAll(Request $request): Response
     {
         $this->logger->info('Debut du chargement de la liste de carte');
         $startTime = microtime(true);
-        $cards = $this->entityManager->getRepository(Card::class)->findAll();
-        if(!$cards) {
+
+        $page = $request->query->get('page', 1);
+        $limit = 100;
+        $query = $this->entityManager->getRepository(Card::class)->createQueryBuilder('c')
+                    ->setFirstResult(($page - 1) * $limit)
+                    ->setMaxResults($limit)
+                    ->getQuery();
+
+        $cards = new Paginator($query);
+
+        $this->logger->info($cards->count());
+        if($cards->count() === 0) {
             $this->logger->error('Aucune carte trouvée');
             return $this->json(['error' => 'No card found'], 404);
         }
