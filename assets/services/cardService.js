@@ -24,3 +24,10 @@ export async function searchCards(name, setCode = null) {
     const cards = await response.json();
     return cards.slice(0, 20);
 }
+
+export async function fetchCodes() {
+    const response = await fetch('api/card/setcodes');
+    if (!response.ok) throw new Error('Failed to fetch set codes');
+    const codes = await response.json();
+    return codes;
+}

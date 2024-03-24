@@ -63,6 +63,23 @@ class ApiCardController extends AbstractController
         return $this->json($cards);
     }
 
+    #[Route('/setcodes', name: 'List all setcodes', methods: ['GET'])]
+    #[OA\Get(description: 'List all setcodes')]
+    #[OA\Response(response: 200, description: 'List all setcodes')]
+    public function cardSetcodes(): Response
+    {
+        $this->logger->info('Debut du chargement de la liste des setcodes');
+        $startTime = microtime(true);
+        $setcodes = $this->entityManager->getRepository(Card::class)->createQueryBuilder('c')
+            ->select('c.setCode')
+            ->distinct()
+            ->getQuery()
+            ->getResult();
+        $endTime = microtime(true);
+        $this->logger->info('Chargement de la liste des setcodes réussi apres ' . ($endTime - $startTime) . ' secondes');
+        return $this->json($setcodes);
+    }
+
     #[Route('/{uuid}', name: 'Show card', methods: ['GET'])]
     #[OA\Parameter(name: 'uuid', description: 'UUID of the card', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))]
     #[OA\Put(description: 'Get a card by UUID')]

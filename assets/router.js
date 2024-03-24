@@ -21,6 +21,11 @@ export const routes = [
         path: '/search',
         component: () => import('./pages/SearchPage.vue'),
     },
+    {
+        name: 'set-codes',
+        path: '/setcodes',
+        component: () => import('./pages/SetCodesPage.vue'),
+    }
 ];
 
 const router = createRouter({
