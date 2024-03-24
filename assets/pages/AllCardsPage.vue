@@ -5,10 +5,11 @@ import { fetchAllCards } from '../services/cardService';
 const cards = ref([]);
 const loadingCards = ref(true);
 const page = ref(1);
+const setCode = ref('');
 
 async function loadCards() {
     loadingCards.value = true;
-    cards.value = await fetchAllCards(page.value);
+    cards.value = await fetchAllCards(page.value, setCode.value);
     loadingCards.value = false;
 }
 
@@ -33,6 +34,10 @@ onMounted(() => {
 <template>
     <div>
         <h1>Toutes les cartes</h1>
+        <div>
+            <input id="text" v-model="setCode" />
+            <button @click="loadCards">Trier par code d'édition (setcode)</button>
+        </div>
         <div>
             <button @click="previousPage">Page précédente</button>
             <button @click="nextPage">Page suivante</button>

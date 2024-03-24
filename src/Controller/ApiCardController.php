@@ -24,7 +24,8 @@ class ApiCardController extends AbstractController
     ) {}
 
     #[Route('/all', name: 'List all cards', methods: ['GET'])]
-    #[OA\Parameter(name: 'page', description: 'Page number', in: 'path', required: false, schema: new OA\Schema(type: 'integer'))]
+    #[OA\Parameter(name: 'page', description: 'Page number', in: 'query', required: false, schema: new OA\Schema(type: 'integer'))]
+    #[OA\Parameter(name: 'setCode', description: 'setcode', in: 'query', required: false, schema: new OA\Schema(type: 'string'))]
     #[OA\Get(description: 'List all cards')]
     #[OA\Response(response: 200, description: 'List all cards')]
     public function cardAll(Request $request): Response
@@ -34,10 +35,21 @@ class ApiCardController extends AbstractController
 
         $page = $request->query->get('page', 1);
         $limit = 100;
-        $query = $this->entityManager->getRepository(Card::class)->createQueryBuilder('c')
-                    ->setFirstResult(($page - 1) * $limit)
-                    ->setMaxResults($limit)
-                    ->getQuery();
+        $setcode = $request->query->get('setCode');
+        $query = null;
+        if($setcode === null) {
+            $query = $this->entityManager->getRepository(Card::class)->createQueryBuilder('c')
+                ->setFirstResult(($page - 1) * $limit)
+                ->setMaxResults($limit)
+                ->getQuery();
+        } else {
+            $query = $this->entityManager->getRepository(Card::class)->createQueryBuilder('c')
+                ->where('c.setCode = :setcode')
+                ->setParameter('setcode', $setcode)
+                ->setFirstResult(($page - 1) * $limit)
+                ->setMaxResults($limit)
+                ->getQuery();
+        }
 
         $cards = new Paginator($query);
 
@@ -72,14 +84,25 @@ class ApiCardController extends AbstractController
 
     #[Route('/name/{name}', name: 'Show card by name', methods: ['GET'])]
     #[OA\Parameter(name: 'name', description: 'Name of the card', in: 'path', required: true, schema: new OA\Schema(type: 'string'))]
+    #[OA\Parameter(name: 'setCode', description: 'setcode', in: 'query', required: false, schema: new OA\Schema(type: 'string'))]
     #[OA\Put(description: 'Get a card by name')]
     #[OA\Response(response: 200, description: 'Show card')]
     #[OA\Response(response: 404, description: 'Card not found')]
-    public function cardByName(string $name): Response 
+    public function cardByName(string $name, Request $request): Response 
     {
         $this->logger->info('Debut du chargement de la carte ' . $name);
+        $setcode = $request->query->get('setCode');
         $startTime = microtime(true);
-        $cards = $this->entityManager->getRepository(Card::class)->findAll();
+        if($setcode === null) {
+            $cards = $this->entityManager->getRepository(Card::class)->findAll();
+        } else {
+            $cards = $this->entityManager->getRepository(Card::class)->createQueryBuilder('c')
+                ->where('c.setCode = :setcode')
+                ->setParameter('setcode', $setcode)
+                ->getQuery()
+                ->getResult();
+        }
+        
         $res = [];
         foreach ($cards as $card) {
             if (strpos($card->getName(), $name) !== false) {
